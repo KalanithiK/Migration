@@ -58,7 +58,7 @@
       <bpmn:incoming>f_gwApproved_to_declined</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:endEvent id="end_purchased" name="Products purchased">
-      <bpmn:incoming>Flow_17p723a</bpmn:incoming>
+      <bpmn:incoming>f_pay_to_purchased</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="f_start_choose" sourceRef="start" targetRef="chooseProducts" />
     <bpmn:sequenceFlow id="f_choose_call" sourceRef="chooseProducts" targetRef="retrieveProducts" />
@@ -79,14 +79,9 @@
     <bpmn:sequenceFlow id="f_gwApproved_to_declined" sourceRef="gwApproved" targetRef="end_declined">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == false}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="f_pay_to_purchased" sourceRef="payForProducts" targetRef="Activity_0041ib1" />
+    <bpmn:sequenceFlow id="f_pay_to_purchased" sourceRef="payForProducts" targetRef="end_purchased" />
     <bpmn:sequenceFlow id="f_boundary_to_change" sourceRef="boundary_paymentFailed" targetRef="changePaymentMethod" />
     <bpmn:sequenceFlow id="f_change_to_pay" sourceRef="changePaymentMethod" targetRef="payForProducts" />
-    <bpmn:sequenceFlow id="Flow_17p723a" sourceRef="Activity_0041ib1" targetRef="end_purchased" />
-    <bpmn:userTask id="Activity_0041ib1" name="wait">
-      <bpmn:incoming>f_pay_to_purchased</bpmn:incoming>
-      <bpmn:outgoing>Flow_17p723a</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:userTask id="chooseAlternative" name="Propose alternative products">
       <bpmn:incoming>f_avail_to_propose</bpmn:incoming>
       <bpmn:outgoing>f_propose_to_evalNeeded</bpmn:outgoing>
@@ -132,9 +127,6 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1604" y="216" width="52" height="27" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0r426n5_di" bpmnElement="Activity_0041ib1">
-        <dc:Bounds x="1440" y="158" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1mrs36o_di" bpmnElement="chooseAlternative">
         <dc:Bounds x="650" y="80" width="100" height="80" />
@@ -194,9 +186,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="f_pay_to_purchased_di" bpmnElement="f_pay_to_purchased">
         <di:waypoint x="1370" y="208" />
-        <di:waypoint x="1405" y="208" />
-        <di:waypoint x="1405" y="196" />
-        <di:waypoint x="1440" y="196" />
+        <di:waypoint x="1491" y="208" />
+        <di:waypoint x="1491" y="196" />
+        <di:waypoint x="1612" y="196" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="f_boundary_to_change_di" bpmnElement="f_boundary_to_change">
         <di:waypoint x="1293" y="261" />
@@ -210,12 +202,6 @@
         <di:waypoint x="1390" y="325" />
         <di:waypoint x="1370" y="325" />
         <di:waypoint x="1370" y="230" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_17p723a_di" bpmnElement="Flow_17p723a">
-        <di:waypoint x="1540" y="198" />
-        <di:waypoint x="1576" y="198" />
-        <di:waypoint x="1576" y="196" />
-        <di:waypoint x="1612" y="196" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
