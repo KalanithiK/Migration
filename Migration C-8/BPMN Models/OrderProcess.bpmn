@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" id="Defs_OrderProcess" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="6169c24" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0" conversion:converterVersion="0.13.3">
+  <bpmn:error id="Error_PaymentFailed" name="Payment failed" errorCode="PAYMENT_FAILED">
+    <bpmn:extensionElements>
+      <conversion:referencedBy>boundary_paymentFailed</conversion:referencedBy>
+    </bpmn:extensionElements>
+  </bpmn:error>
+  <bpmn:process id="order-process" name="Order Process" processType="None" isClosed="false" isExecutable="true">
+    <bpmn:startEvent id="start" name="Order initiated">
+      <bpmn:outgoing>f_start_choose</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="chooseProducts" name="Choose products" implementation="##unspecified">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f_start_choose</bpmn:incoming>
+      <bpmn:outgoing>f_choose_call</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:callActivity id="retrieveProducts" name="Retrieve products" calledElement="retrieve-products">
+      <bpmn:extensionElements>
+        <conversion:message link="https://docs.camunda.io/docs/components/modeler/bpmn/call-activities/#variable-mappings" severity="REVIEW">in, Parameter: 'selectedProductId': Please review transformed expression: 'selectedProductId' -&gt; '=selectedProductId'.</conversion:message>
+        <conversion:message link="https://docs.camunda.io/docs/components/modeler/bpmn/call-activities/#variable-mappings" severity="REVIEW">in, Parameter: 'selectedProductName': Please review transformed expression: 'selectedProductName' -&gt; '=selectedProductName'.</conversion:message>
+        <conversion:message link="https://docs.camunda.io/docs/components/modeler/bpmn/call-activities/#variable-mappings" severity="REVIEW">out, Parameter: 'availability': Please review transformed expression: 'availability' -&gt; '=availability'.</conversion:message>
+        <conversion:message link="https://docs.camunda.io/docs/components/modeler/bpmn/call-activities/#variable-mappings" severity="REVIEW">out, Parameter: 'proposalMade': Please review transformed expression: 'proposalMade' -&gt; '=proposalMade'.</conversion:message>
+        <conversion:message link="https://docs.camunda.io/docs/components/modeler/bpmn/call-activities/#variable-mappings" severity="REVIEW">out, Parameter: 'errorMessage': Please review transformed expression: 'errorMessage' -&gt; '=errorMessage'.</conversion:message>
+        <zeebe:calledElement processId="retrieve-products" propagateAllChildVariables="false" propagateAllParentVariables="false" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=selectedProductId" target="selectedProductId" />
+          <zeebe:input source="=selectedProductName" target="selectedProductName" />
+          <zeebe:output source="=errorMessage" target="errorMessage" />
+          <zeebe:output source="=availability" target="availability" />
+          <zeebe:output source="=proposalMade" target="proposalMade" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f_choose_call</bpmn:incoming>
+      <bpmn:outgoing>f_call_gwAvail</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="gwAvail" name="Available?" default="f_avail_to_evalNeeded">
+      <bpmn:incoming>f_call_gwAvail</bpmn:incoming>
+      <bpmn:outgoing>f_avail_to_evalNeeded</bpmn:outgoing>
+      <bpmn:outgoing>f_avail_to_propose</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="gwEvalNeeded" name="Evaluate proposal?" default="f_evalNeeded_to_pay">
+      <bpmn:incoming>f_avail_to_evalNeeded</bpmn:incoming>
+      <bpmn:incoming>f_propose_to_evalNeeded</bpmn:incoming>
+      <bpmn:outgoing>f_evalNeeded_to_evaluate</bpmn:outgoing>
+      <bpmn:outgoing>f_evalNeeded_to_pay</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="evaluateProposal" name="Evaluate proposal" implementation="##WebService">
+      <bpmn:extensionElements>
+        <conversion:message severity="REVIEW">Delegate class or expression '${evaluateProposalDelegate}' has been transformed to job type 'evaluateProposalDelegate'.</conversion:message>
+        <zeebe:taskHeaders>
+          <zeebe:header key="delegateExpression" value="${evaluateProposalDelegate}" />
+        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="evaluateProposalDelegate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f_evalNeeded_to_evaluate</bpmn:incoming>
+      <bpmn:outgoing>f_evaluate_to_gwApproved</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="gwApproved" name="Approved?">
+      <bpmn:incoming>f_evaluate_to_gwApproved</bpmn:incoming>
+      <bpmn:outgoing>f_gwApproved_to_pay</bpmn:outgoing>
+      <bpmn:outgoing>f_gwApproved_to_declined</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="payForProducts" name="Pay for products" implementation="##WebService">
+      <bpmn:extensionElements>
+        <conversion:message severity="REVIEW">Delegate class or expression '${processPaymentDelegate}' has been transformed to job type 'processPaymentDelegate'.</conversion:message>
+        <zeebe:taskHeaders>
+          <zeebe:header key="delegateExpression" value="${processPaymentDelegate}" />
+        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="processPaymentDelegate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f_evalNeeded_to_pay</bpmn:incoming>
+      <bpmn:incoming>f_gwApproved_to_pay</bpmn:incoming>
+      <bpmn:incoming>f_change_to_pay</bpmn:incoming>
+      <bpmn:outgoing>f_pay_to_purchased</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="boundary_paymentFailed" attachedToRef="payForProducts">
+      <bpmn:extensionElements>
+        <conversion:reference>Error_PaymentFailed</conversion:reference>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>f_boundary_to_change</bpmn:outgoing>
+      <bpmn:errorEventDefinition errorRef="Error_PaymentFailed" />
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="changePaymentMethod" name="Change payment method" implementation="##WebService">
+      <bpmn:extensionElements>
+        <conversion:message severity="REVIEW">Delegate class or expression '${changePaymentMethodDelegate}' has been transformed to job type 'changePaymentMethodDelegate'.</conversion:message>
+        <zeebe:taskHeaders>
+          <zeebe:header key="delegateExpression" value="${changePaymentMethodDelegate}" />
+        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="changePaymentMethodDelegate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f_boundary_to_change</bpmn:incoming>
+      <bpmn:outgoing>f_change_to_pay</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="end_declined" name="Order declined">
+      <bpmn:incoming>f_gwApproved_to_declined</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="end_purchased" name="Products purchased">
+      <bpmn:incoming>f_pay_to_purchased</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="f_start_choose" sourceRef="start" targetRef="chooseProducts" />
+    <bpmn:sequenceFlow id="f_choose_call" sourceRef="chooseProducts" targetRef="retrieveProducts" />
+    <bpmn:sequenceFlow id="f_call_gwAvail" sourceRef="retrieveProducts" targetRef="gwAvail" />
+    <bpmn:sequenceFlow id="f_avail_to_propose" sourceRef="gwAvail" targetRef="chooseAlternative">
+      <bpmn:extensionElements>
+        <conversion:message link="https://docs.camunda.io/docs/components/modeler/bpmn/exclusive-gateways/#conditions" severity="REVIEW">Condition expression: Please review transformed expression: '${availability == "NOT_AVAILABLE"}' -&gt; '=availability = "NOT_AVAILABLE"'.</conversion:message>
+      </bpmn:extensionElements>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=availability = "NOT_AVAILABLE"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_avail_to_evalNeeded" sourceRef="gwAvail" targetRef="gwEvalNeeded" />
+    <bpmn:sequenceFlow id="f_propose_to_evalNeeded" sourceRef="chooseAlternative" targetRef="gwEvalNeeded" />
+    <bpmn:sequenceFlow id="f_evalNeeded_to_evaluate" sourceRef="gwEvalNeeded" targetRef="evaluateProposal">
+      <bpmn:extensionElements>
+        <conversion:message link="https://docs.camunda.io/docs/components/modeler/bpmn/exclusive-gateways/#conditions" severity="REVIEW">Condition expression: Please review transformed expression: '${proposalMade == true}' -&gt; '=proposalMade = true'.</conversion:message>
+      </bpmn:extensionElements>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=proposalMade = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_evalNeeded_to_pay" sourceRef="gwEvalNeeded" targetRef="payForProducts" />
+    <bpmn:sequenceFlow id="f_evaluate_to_gwApproved" sourceRef="evaluateProposal" targetRef="gwApproved" />
+    <bpmn:sequenceFlow id="f_gwApproved_to_pay" sourceRef="gwApproved" targetRef="payForProducts">
+      <bpmn:extensionElements>
+        <conversion:message link="https://docs.camunda.io/docs/components/modeler/bpmn/exclusive-gateways/#conditions" severity="REVIEW">Condition expression: Please review transformed expression: '${approved == true}' -&gt; '=approved = true'.</conversion:message>
+      </bpmn:extensionElements>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=approved = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_gwApproved_to_declined" sourceRef="gwApproved" targetRef="end_declined">
+      <bpmn:extensionElements>
+        <conversion:message link="https://docs.camunda.io/docs/components/modeler/bpmn/exclusive-gateways/#conditions" severity="REVIEW">Condition expression: Please review transformed expression: '${approved == false}' -&gt; '=approved = false'.</conversion:message>
+      </bpmn:extensionElements>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=approved = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_pay_to_purchased" sourceRef="payForProducts" targetRef="end_purchased" />
+    <bpmn:sequenceFlow id="f_boundary_to_change" sourceRef="boundary_paymentFailed" targetRef="changePaymentMethod" />
+    <bpmn:sequenceFlow id="f_change_to_pay" sourceRef="changePaymentMethod" targetRef="payForProducts" />
+    <bpmn:userTask id="chooseAlternative" name="Propose alternative products" implementation="##unspecified">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f_avail_to_propose</bpmn:incoming>
+      <bpmn:outgoing>f_propose_to_evalNeeded</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Order">
+    <bpmndi:BPMNPlane id="Plane_Order" bpmnElement="order-process">
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
+        <dc:Bounds x="160" y="180" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="choose_di" bpmnElement="chooseProducts">
+        <dc:Bounds x="230" y="160" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="call_di" bpmnElement="retrieveProducts">
+        <dc:Bounds x="390" y="160" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gwAvail_di" bpmnElement="gwAvail" isMarkerVisible="true">
+        <dc:Bounds x="570" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gwEvalNeeded_di" bpmnElement="gwEvalNeeded" isMarkerVisible="true">
+        <dc:Bounds x="840" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="evaluate_di" bpmnElement="evaluateProposal">
+        <dc:Bounds x="930" y="160" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gwApproved_di" bpmnElement="gwApproved" isMarkerVisible="true">
+        <dc:Bounds x="1120" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="pay_di" bpmnElement="payForProducts">
+        <dc:Bounds x="1210" y="160" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="change_di" bpmnElement="changePaymentMethod">
+        <dc:Bounds x="1180" y="550" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endDeclined_di" bpmnElement="end_declined">
+        <dc:Bounds x="1182" y="42" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1164" y="78" width="73" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endPurchased_di" bpmnElement="end_purchased">
+        <dc:Bounds x="1612" y="180" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1604" y="216" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1mrs36o_di" bpmnElement="chooseAlternative">
+        <dc:Bounds x="650" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundary_di" bpmnElement="boundary_paymentFailed">
+        <dc:Bounds x="1275" y="225" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="f_start_choose_di" bpmnElement="f_start_choose">
+        <di:waypoint x="196" y="198" />
+        <di:waypoint x="230" y="198" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_choose_call_di" bpmnElement="f_choose_call">
+        <di:waypoint x="350" y="200" />
+        <di:waypoint x="390" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_call_gwAvail_di" bpmnElement="f_call_gwAvail">
+        <di:waypoint x="530" y="200" />
+        <di:waypoint x="570" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_avail_to_propose_di" bpmnElement="f_avail_to_propose">
+        <di:waypoint x="595" y="175" />
+        <di:waypoint x="595" y="120" />
+        <di:waypoint x="650" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_avail_to_evalNeeded_di" bpmnElement="f_avail_to_evalNeeded">
+        <di:waypoint x="620" y="200" />
+        <di:waypoint x="840" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_propose_to_evalNeeded_di" bpmnElement="f_propose_to_evalNeeded">
+        <di:waypoint x="750" y="120" />
+        <di:waypoint x="865" y="120" />
+        <di:waypoint x="865" y="175" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_evalNeeded_to_evaluate_di" bpmnElement="f_evalNeeded_to_evaluate">
+        <di:waypoint x="890" y="200" />
+        <di:waypoint x="930" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_evalNeeded_to_pay_di" bpmnElement="f_evalNeeded_to_pay">
+        <di:waypoint x="865" y="225" />
+        <di:waypoint x="865" y="290" />
+        <di:waypoint x="1190" y="290" />
+        <di:waypoint x="1190" y="220" />
+        <di:waypoint x="1210" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_evaluate_to_gwApproved_di" bpmnElement="f_evaluate_to_gwApproved">
+        <di:waypoint x="1090" y="200" />
+        <di:waypoint x="1120" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_gwApproved_to_pay_di" bpmnElement="f_gwApproved_to_pay">
+        <di:waypoint x="1170" y="200" />
+        <di:waypoint x="1210" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_gwApproved_to_declined_di" bpmnElement="f_gwApproved_to_declined">
+        <di:waypoint x="1145" y="175" />
+        <di:waypoint x="1145" y="60" />
+        <di:waypoint x="1182" y="60" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_pay_to_purchased_di" bpmnElement="f_pay_to_purchased">
+        <di:waypoint x="1370" y="208" />
+        <di:waypoint x="1491" y="208" />
+        <di:waypoint x="1491" y="196" />
+        <di:waypoint x="1612" y="196" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_boundary_to_change_di" bpmnElement="f_boundary_to_change">
+        <di:waypoint x="1293" y="261" />
+        <di:waypoint x="1293" y="336" />
+        <di:waypoint x="1257" y="336" />
+        <di:waypoint x="1257" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_change_to_pay_di" bpmnElement="f_change_to_pay">
+        <di:waypoint x="1340" y="590" />
+        <di:waypoint x="1390" y="590" />
+        <di:waypoint x="1390" y="325" />
+        <di:waypoint x="1370" y="325" />
+        <di:waypoint x="1370" y="230" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

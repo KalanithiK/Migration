@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:conversion="http://camunda.org/schema/conversion/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" conversion:converterVersion="0.13.3" exporter="Camunda Modeler" exporterVersion="5.35.0" expressionLanguage="http://www.w3.org/1999/XPath" id="Defs_RetrieveProducts" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.7.0" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <bpmn:process id="retrieve-products" isClosed="false" isExecutable="true" name="Retrieve products" processType="None">
+    <bpmn:startEvent id="sub_start" isInterrupting="true" name="Products requested" parallelMultiple="false">
+      <bpmn:outgoing>sf1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask completionQuantity="1" id="checkAvailability" implementation="##WebService" isForCompensation="false" name="Check availability" startQuantity="1">
+      <bpmn:extensionElements>
+        <conversion:message severity="REVIEW">Delegate class or expression '${checkAvailabilityDelegate}' has been transformed to job type 'checkAvailabilityDelegate'.</conversion:message>
+        <zeebe:taskHeaders>
+          <zeebe:header key="delegateExpression" value="${checkAvailabilityDelegate}"/>
+        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="checkAvailabilityDelegate"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>sf1</bpmn:incoming>
+      <bpmn:outgoing>sf2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="sub_end" name="Done">
+      <bpmn:incoming>sf2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="sf1" sourceRef="sub_start" targetRef="checkAvailability"/>
+    <bpmn:sequenceFlow id="sf2" sourceRef="checkAvailability" targetRef="sub_end"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Sub">
+    <bpmndi:BPMNPlane bpmnElement="retrieve-products" id="Plane_Sub">
+      <bpmndi:BPMNShape bpmnElement="sub_start" id="sub_start_di">
+        <dc:Bounds height="36" width="36" x="160" y="100"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="27" width="49" x="154" y="136"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="checkAvailability" id="sub_task_di">
+        <dc:Bounds height="80" width="160" x="240" y="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sub_end" id="sub_end_di">
+        <dc:Bounds height="36" width="36" x="692" y="82"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="14" width="27" x="697" y="118"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sf1" id="sf1_di">
+        <di:waypoint x="196" y="118"/>
+        <di:waypoint x="240" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sf2" id="sf2_di">
+        <di:waypoint x="400" y="124"/>
+        <di:waypoint x="546" y="124"/>
+        <di:waypoint x="546" y="99"/>
+        <di:waypoint x="692" y="99"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

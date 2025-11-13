@@ -1,0 +1,209 @@
+{
+	"info": {
+		"_postman_id": "df0fcca9-2a5d-4c92-9606-04191894820e",
+		"name": "Camunda 8 - OrderController APIs",
+		"description": "Postman collection for testing Camunda 8 OrderController endpoints using Zeebe Client.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28028584",
+		"_collection_link": "https://warped-flare-908948.postman.co/workspace/Migration~1972fd25-c108-4b06-85da-9d429ac153cb/collection/28028584-df0fcca9-2a5d-4c92-9606-04191894820e?action=share&source=collection_link&creator=28028584"
+	},
+	"item": [
+		{
+			"name": "Get Order Items",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8989/api/orders/101/items",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8989",
+					"path": [
+						"api",
+						"orders",
+						"101",
+						"items"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start Process Instance",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8989/api/orders/101/start",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8989",
+					"path": [
+						"api",
+						"orders",
+						"101",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Complete Zeebe Job (Task)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"selectedProductId\": 101,\n    \"selectedProductName\": \"Laptop L-101\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8989/api/task/complete?jobKey=2251799813804677",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8989",
+					"path": [
+						"api",
+						"task",
+						"complete"
+					],
+					"query": [
+						{
+							"key": "jobKey",
+							"value": "2251799813804677"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register Worker",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}"
+				},
+				"url": {
+					"raw": "http://localhost:8989/api/register-worker",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8989",
+					"path": [
+						"api",
+						"register-worker"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Choose Alternative Product",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\n{\n  \"jobKey\": 2251799813816188,\n  \"chosenAlternativeId\": 103,\n  \"chosenAlternativeName\": \"Slippers SL-103\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8989/api/process/choose-alternative",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8989",
+					"path": [
+						"api",
+						"process",
+						"choose-alternative"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "complete-task",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"chosenAlternativeId\": 303\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8989/api/process/2251799813685260/choose-alternative",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8989",
+					"path": [
+						"api",
+						"process",
+						"2251799813685260",
+						"choose-alternative"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8989"
+		},
+		{
+			"key": "orderId",
+			"value": "101"
+		},
+		{
+			"key": "processInstanceKey",
+			"value": "2251799813685260"
+		},
+		{
+			"key": "jobKey",
+			"value": "2251799813685249"
+		}
+	]
+}

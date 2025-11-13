@@ -1,0 +1,231 @@
+{
+	"info": {
+		"_postman_id": "8f0471d1-26cb-4029-9ad4-75e2d61303b9",
+		"name": "Migration -7",
+		"description": "Full Camunda 7 Order Migration workflow test (Happy & Sad Path) with process instance viewing and variable handling.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28028584",
+		"_collection_link": "https://warped-flare-908948.postman.co/workspace/Migration~1972fd25-c108-4b06-85da-9d429ac153cb/collection/28028584-8f0471d1-26cb-4029-9ad4-75e2d61303b9?action=share&source=collection_link&creator=28028584"
+	},
+	"item": [
+		{
+			"name": "Start Process (Happy Path)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/orders/1/start",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"orders",
+						"1",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Active Tasks (Happy Path)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/process/tasks?processInstanceId={{processInstanceId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"process",
+						"tasks"
+					],
+					"query": [
+						{
+							"key": "processInstanceId",
+							"value": "{{processInstanceId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Complete Choose Products Task (Happy Path)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"selectedProductId\": 103,\n  \"selectedProductName\": \"Slippers SL-103\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/task/complete?processInstanceId={{processInstanceId}}&taskDefinitionKey=chooseProducts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"task",
+						"complete"
+					],
+					"query": [
+						{
+							"key": "processInstanceId",
+							"value": "{{processInstanceId}}"
+						},
+						{
+							"key": "taskDefinitionKey",
+							"value": "chooseProducts"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "View Process Instances",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/process/instances",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"process",
+						"instances"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start Process (Sad Path - Out of Stock)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/orders/2/start",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"orders",
+						"2",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Complete Choose Products Task (Sad Path)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"selectedProductId\": 101,\n  \"selectedProductName\": \"Laptop L-101\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/task/complete?processInstanceId={{processInstanceId}}&taskDefinitionKey=chooseProducts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"task",
+						"complete"
+					],
+					"query": [
+						{
+							"key": "processInstanceId",
+							"value": "{{processInstanceId}}"
+						},
+						{
+							"key": "taskDefinitionKey",
+							"value": "chooseProducts"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "View Alternatives (Sad Path)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/process/{{processInstanceId}}/alternatives",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"process",
+						"{{processInstanceId}}",
+						"alternatives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Choose Alternative Product",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"chosenAlternativeId\": 103\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/process/{{processInstanceId}}/choose-alternative",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"process",
+						"{{processInstanceId}}",
+						"choose-alternative"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "processInstanceId",
+			"value": ""
+		}
+	]
+}
